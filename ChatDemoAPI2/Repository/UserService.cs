@@ -27,5 +27,10 @@ namespace ChatDemoAPI2.Repository
 
             return new ServiceResult { Success = true, Message = "User registered successfully" };
         }
+
+        public async Task<RegisterModel> AuthenticateUserAsync(string Email, string password)
+        {
+            return await _context.registerUsers.FirstOrDefaultAsync(u => u.Email == Email && u.Password == password);
+        }
     }
 }
