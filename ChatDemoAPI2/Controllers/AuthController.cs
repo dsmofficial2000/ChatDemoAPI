@@ -1,12 +1,35 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ChatDemoAPI2.Model;
+using ChatDemoAPI2.Repository;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ChatDemoAPI2.Controllers
 {
-    public class AuthController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController : ControllerBase
     {
-        public IActionResult Index()
+        private readonly IUserService _userService;
+
+        public AuthController(IUserService userService)
         {
-            return View();
+            _userService = userService;
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _userService.RegisterUserAsync(model);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
         }
     }
 }

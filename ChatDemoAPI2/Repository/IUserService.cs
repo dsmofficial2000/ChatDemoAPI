@@ -1,0 +1,10 @@
+﻿using ChatDemoAPI2.Model;
+using ChatDemoAPI2.Model.Dtos;
+
+namespace ChatDemoAPI2.Repository
+{
+    public interface IUserService
+    {
+        Task<ServiceResult> RegisterUserAsync(RegisterModel model);
+    }
+}
