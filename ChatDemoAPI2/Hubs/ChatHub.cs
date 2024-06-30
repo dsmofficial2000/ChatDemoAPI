@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using System.Collections.Concurrent;
+using System.Security.Claims;
 
 namespace ChatDemoAPI2.Hubs
 {
@@ -16,23 +18,27 @@ namespace ChatDemoAPI2.Hubs
             await Clients.User(userId).SendAsync("ReceiveMessage", Context.User.Identity.Name, message);
         }
 
-        public override Task OnConnectedAsync()
+        public override async Task OnConnectedAsync()
         {
-            string username = Context.User.Identity.Name;
-            UserHandler.ConnectedIds[username] = Context.ConnectionId;
-            return base.OnConnectedAsync();
-        }
-
-        public override Task OnDisconnectedAsync(Exception exception)
-        {
-            string username = Context.User.Identity.Name;
-            UserHandler.ConnectedIds.Remove(username);
-            return base.OnDisconnectedAsync(exception);
+            if (Context.User.Identity.IsAuthenticated)
+            {
+                string username = Context.User.Identity.Name;
+                UserHandler.ConnectedIds[username] = Context.ConnectionId;
+            }
+            await base.OnConnectedAsync();
         }
     }
 
     public static class UserHandler
     {
-        public static Dictionary<string, string> ConnectedIds = new Dictionary<string, string>();
+        public static ConcurrentDictionary<string, string> ConnectedIds = new ConcurrentDictionary<string, string>();
+    }
+
+    public class CustomUserIdProvider : IUserIdProvider
+    {
+        public virtual string GetUserId(HubConnectionContext connection)
+        {
+            return connection.User?.FindFirst(ClaimTypes.Name)?.Value;
+        }
     }
 }
